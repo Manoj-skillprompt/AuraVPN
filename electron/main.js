@@ -1,6 +1,6 @@
 /* eslint-disable */
 /* eslint-env node */
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu } = require('electron');
 const path = require('path');
 const { exec } = require('child_process');
 
@@ -14,8 +14,9 @@ if (!isDev) {
 const loadURL = !isDev ? serve({ directory: 'out' }) : null;
 
 let mainWindow;
+let tray = null;
 
-// Register Window Handlers FIRST to ensure they are always ready
+// Register Window Handlers
 ipcMain.handle('window:minimize', () => {
   if (mainWindow) mainWindow.minimize();
 });
@@ -30,10 +31,57 @@ ipcMain.handle('window:maximize', () => {
 });
 
 ipcMain.handle('window:close', () => {
-  if (mainWindow) mainWindow.close();
+  if (mainWindow) {
+    // Instead of closing, we hide it to keep it in the tray
+    mainWindow.hide();
+  }
 });
 
 const isWin = process.platform === 'win32';
+
+function createTray() {
+  const iconPath = path.join(__dirname, '../public/logo.png');
+  tray = new Tray(iconPath);
+  
+  const contextMenu = Menu.buildFromTemplate([
+    { 
+      label: 'Show AuraVPN', 
+      click: () => {
+        if (mainWindow) {
+          mainWindow.show();
+        }
+      } 
+    },
+    { type: 'separator' },
+    { 
+      label: 'Connect Fastest', 
+      click: () => {
+        // We could emit an IPC event here to trigger connection
+        if (mainWindow) {
+          mainWindow.webContents.send('vpn:request-connect');
+          mainWindow.show();
+        }
+      }
+    },
+    { type: 'separator' },
+    { 
+      label: 'Quit AuraVPN', 
+      click: () => {
+        app.isQuitting = true;
+        app.quit();
+      } 
+    }
+  ]);
+
+  tray.setToolTip('AuraVPN - Premium Privacy');
+  tray.setContextMenu(contextMenu);
+
+  tray.on('click', () => {
+    if (mainWindow) {
+      mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
+    }
+  });
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -47,6 +95,7 @@ function createWindow() {
     titleBarStyle: 'hidden',
     backgroundColor: '#050505',
     show: false,
+    icon: path.join(__dirname, '../public/logo.png')
   });
 
   if (isDev) {
@@ -61,16 +110,28 @@ function createWindow() {
     mainWindow.show();
   });
 
+  // Handle close event to prevent quitting
+  mainWindow.on('close', (event) => {
+    if (!app.isQuitting) {
+      event.preventDefault();
+      mainWindow.hide();
+    }
+    return false;
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 }
 
-app.on('ready', createWindow);
+app.on('ready', () => {
+  createWindow();
+  createTray();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    app.quit();
+    // We don't quit here anymore because of tray
   }
 });
 

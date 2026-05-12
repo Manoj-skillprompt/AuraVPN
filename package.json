@@ -1,9 +1,9 @@
 {
   "name": "vpn",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Premium High-Speed VPN Client",
   "author": "Manoj",
-  "homepage": "https://github.com/manoj/vpn",
+  "homepage": "https://github.com/Manoj-skillprompt/AuraVPN",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
@@ -12,7 +12,9 @@
     "start": "next start",
     "lint": "eslint",
     "electron:dev": "concurrently \"npm run dev\" \"electron .\"",
-    "electron:build": "next build && electron-builder"
+    "electron:build": "next build && electron-builder",
+    "dist:linux": "next build && electron-builder --linux",
+    "dist:win": "next build && electron-builder --win"
   },
   "build": {
     "appId": "com.auravpn.app",
@@ -20,26 +22,30 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "manoj",
-        "repo": "vpn"
+        "owner": "Manoj-skillprompt",
+        "repo": "AuraVPN"
       }
     ],
     "files": [
       "out/**/*",
       "electron/**/*",
-      "package.json"
+      "package.json",
+      "configs/**/*",
+      "public/**/*"
     ],
     "linux": {
-      "maintainer": "Manoj <manoj@example.com>",
+      "maintainer": "Manoj Chaudhary",
       "target": [
         "AppImage",
         "deb"
-      ]
+      ],
+      "category": "Network"
     },
     "win": {
       "target": [
         "nsis"
-      ]
+      ],
+      "icon": "public/logo.png"
     }
   },
   "dependencies": {
@@ -57,10 +63,8 @@
     "concurrently": "^9.2.1",
     "electron": "^42.0.1",
     "electron-builder": "^26.8.1",
-    "electron-is-dev": "^3.0.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
-    "sudo-prompt": "^9.2.1",
     "typescript": "^5"
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Shield, LayoutDashboard, Server, Settings, HelpCircle, LogOut } from "lucide-react";
+import { Shield, LayoutDashboard, Server, Settings, HelpCircle, LogOut, Gift, Terminal } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 export default function Sidebar() {
@@ -10,6 +10,8 @@ export default function Sidebar() {
   const links = [
     { name: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/dashboard" },
     { name: "Servers", icon: <Server size={20} />, path: "/dashboard/servers" },
+    { name: "Invite & Earn", icon: <Gift size={20} />, path: "/dashboard/invite" },
+    { name: "Log Viewer", icon: <Terminal size={20} />, path: "/dashboard/logs" },
     { name: "Settings", icon: <Settings size={20} />, path: "/dashboard/settings" },
     { name: "Support", icon: <HelpCircle size={20} />, path: "/dashboard/support" },
   ];

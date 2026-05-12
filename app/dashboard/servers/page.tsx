@@ -1,24 +1,54 @@
 "use client";
 
 import Sidebar from "@/components/Sidebar";
-import { Search, Globe, Zap, Shield, ChevronRight, Check } from "lucide-react";
-import { useState } from "react";
+import { Search, Zap, ChevronRight, Check } from "lucide-react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
-const servers = [
-  { id: 1, name: "United States - New York", flag: "🇺🇸", latency: "24ms", load: "42%", recommended: true },
-  { id: 2, name: "United Kingdom - London", flag: "🇬🇧", latency: "38ms", load: "12%", recommended: true },
-  { id: 3, name: "Japan - Tokyo", flag: "🇯🇵", latency: "145ms", load: "65%", recommended: false },
-  { id: 4, name: "Germany - Frankfurt", flag: "🇩🇪", latency: "42ms", load: "28%", recommended: false },
-  { id: 5, name: "Singapore - Central", flag: "🇸🇬", latency: "98ms", load: "54%", recommended: false },
-  { id: 6, name: "Canada - Toronto", flag: "🇨🇦", latency: "31ms", load: "18%", recommended: false },
-  { id: 7, name: "Australia - Sydney", flag: "🇦🇺", latency: "210ms", load: "33%", recommended: false },
-  { id: 8, name: "India - Mumbai", flag: "🇮🇳", latency: "112ms", load: "78%", recommended: false },
+interface Server {
+  id: string | number;
+  name: string;
+  flag: string;
+  latency: string;
+  load: string;
+  recommended: boolean;
+  config: string;
+}
+
+const servers: Server[] = [
+  { id: 'smart', name: "Smart Connect", flag: "⚡", latency: "Fastest", load: "--", recommended: true, config: "usa.conf" },
+  { id: 1, name: "United States - New York", flag: "🇺🇸", latency: "24ms", load: "42%", recommended: true, config: "usa.conf" },
+  { id: 2, name: "United Kingdom - London", flag: "🇬🇧", latency: "38ms", load: "12%", recommended: true, config: "uk.conf" },
+  { id: 3, name: "Japan - Tokyo", flag: "🇯🇵", latency: "145ms", load: "65%", recommended: false, config: "japan.conf" },
+  { id: 4, name: "Germany - Frankfurt", flag: "🇩🇪", latency: "42ms", load: "28%", recommended: false, config: "usa.conf" },
+  { id: 5, name: "Singapore - Central", flag: "🇸🇬", latency: "98ms", load: "54%", recommended: false, config: "usa.conf" },
+  { id: 6, name: "Canada - Toronto", flag: "🇨🇦", latency: "31ms", load: "18%", recommended: false, config: "usa.conf" },
+  { id: 7, name: "Australia - Sydney", flag: "🇦🇺", latency: "210ms", load: "33%", recommended: false, config: "usa.conf" },
+  { id: 8, name: "India - Mumbai", flag: "🇮🇳", latency: "112ms", load: "78%", recommended: false, config: "usa.conf" },
 ];
 
 export default function Servers() {
-  const [selectedId, setSelectedId] = useState(1);
+  const router = useRouter();
+  const [selectedId, setSelectedId] = useState<string | number>('smart');
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("selectedServer");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Fixed: Wrapping in setTimeout to avoid the "cascading render" warning
+      setTimeout(() => {
+        setSelectedId(parsed.id);
+      }, 0);
+    }
+  }, []);
+
+  const handleSelect = (server: Server) => {
+    setSelectedId(server.id);
+    localStorage.setItem("selectedServer", JSON.stringify(server));
+    router.push("/dashboard");
+  };
 
   const filteredServers = servers.filter(s => 
     s.name.toLowerCase().includes(search.toLowerCase())
@@ -61,7 +91,7 @@ export default function Servers() {
               <motion.div
                 key={server.id}
                 whileHover={{ background: 'rgba(255,255,255,0.05)' }}
-                onClick={() => setSelectedId(server.id)}
+                onClick={() => handleSelect(server)}
                 style={{
                   display: 'grid',
                   gridTemplateColumns: '50px 1fr 100px 100px 50px',
@@ -88,7 +118,7 @@ export default function Servers() {
                   <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>Load: {server.load}</div>
                   <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{ 
-                      width: server.load, 
+                      width: server.load === '--' ? '0%' : server.load, 
                       height: '100%', 
                       background: parseInt(server.load) > 70 ? 'var(--warning)' : 'var(--success)' 
                     }} />
